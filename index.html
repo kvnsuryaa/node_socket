@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime Chat</title>
+    <link rel="stylesheet" href="bootstrap.css">
+    <link rel="stylesheet" href="me.css">
+</head>
+<body>
+
+    <!-- LOL BAD DESIGN SORRY -->
+    <div id="app">
+        <div class="container-fluid">
+            <div class="row justify-content-center mt-4">
+                <div class="col-md-5">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h2 class="text-center">Realtime Chat</h2>
+                            <hr class="my-3">
+                            <!-- <form action="">
+                                <div class="form-group">
+                                    <label>Username</label>
+                                    <input type="text" class="form-control" placeholder="Username">
+                                </div>
+                                <div class="form-group text-right">
+                                    <button class="btn btn-primary btn-sm">Enter chat</button>
+                                </div>
+                            </form> -->
+                            
+                            <input type="text" class="form-control mb-3" placeholder="Enter the username" v-model="user">
+                            <div class="chat">
+                                <div class="chat-box">
+                                    <div class="new-message" v-for="(msg, i) in message">
+                                        <div class="user">{{ msg.user }} :</div>
+                                        <div class="message">{{ msg.message }}</div>
+                                    </div>
+                                </div>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" autofocus v-model="new_msg" v-on:keyup.enter="send_message" placeholder="Send message">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary" @click="send_message">Send</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="vue-asset.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                user: '',
+                ws: io.connect('http://localhost:3030/'),
+                new_msg: '',
+                message: []
+            },
+            mounted(){
+                
+                this.ws.on('income-msg', (data) => {
+                    console.log(data)
+                    this.message.push(data)
+                })
+
+                this.ws.on('disconnect', () => {
+                    console.log('Reconnecting Socket')
+                    io.connect('http://localhost:3030/')
+                })
+            },
+            methods: {
+                send_message(){
+                    if(this.user === '' || this.user === undefined){
+                        alert('User is empty')
+                    }else{
+                        let data = {
+                            user: this.user,
+                            message: this.new_msg
+                        }
+                        this.ws.emit('new-message', data)
+                        this.new_msg = ''
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+</html>
